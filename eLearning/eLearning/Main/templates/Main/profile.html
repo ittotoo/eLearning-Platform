@@ -1,0 +1,171 @@
+{% extends 'Main/base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Edit Profile and Change Password buttons are shown only if the logged-in user is viewing their own profile -->
+        {% if viewed_user == logged_in_user %}
+        <a class="btn btn-primary mr-2" href="/edit_profile" id="editButton">Edit Profile</a>
+        <a class="btn btn-primary" href="/change_password" id="passwordButton">Change Password</a>
+        {% endif %}
+    </div>
+    
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 d-flex flex-column align-items-center">
+                    {% if viewed_user.photo %}
+                        <img src="{{ viewed_user.photo.url }}" alt="Profile Picture" class="img-thumbnail mb-3">
+                    {% endif %}
+                    <h3>Full Name: {{ viewed_user.first_name|add:" "|add:viewed_user.last_name}}</h3>
+                    <p class="text-muted">Role: {{ viewed_user.get_role_display }}</p>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <h5 class="card-title">Personal Info</h5>
+                        <p>First Name: {{ viewed_user.first_name }}</p>
+                        <p>Last Name: {{ viewed_user.last_name }}</p>
+                        <p>Date of Birth: {{ viewed_user.dob }}</p>
+                        <p>Bio: {{ viewed_user.bio }}</p>
+                    </div>
+
+                    <div>
+                        <h5 class="card-title">Contact Info</h5>
+                        <p>Email: {{ viewed_user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Courses Taught or Enrolled Courses sections, shown based on the viewed_user's role -->
+    {% if viewed_user.role == 'TE' %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-center">Courses Taught</h4>
+        {% if viewed_user == logged_in_user %}
+        <a href="{% url 'create_course' %}" class="btn btn-success">Create Course</a>
+        {% endif %}
+    </div>
+    {% if courses %}
+    <div class="row">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="card-text">{{ course.description }}</p>
+                    {% if viewed_user == logged_in_user %}
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-primary">View Details</a>
+                    <!-- Include View Students link for each course -->
+                    <a href="{% url 'course_students' course.id %}" class="btn btn-sm btn-info">View Students</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No courses to display. {% if viewed_user == logged_in_user %}Start by creating a new course!{% endif %}
+    </div>
+    {% endif %}
+    {% endif %}    
+
+    {% if viewed_user.role == 'ST' and enrolled_courses %}
+    <h4 class="text-center mb-3">Enrolled Courses</h4>
+    <div class="row">
+        {% for course in enrolled_courses %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ course.title }}</h5>
+                        <p class="card-text">{{ course.description }}</p>
+                        {% if viewed_user == logged_in_user %}
+                        <a href="{% url 'course_detail' course.id %}" class="btn btn-primary mt-2">View Details</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-muted">You are not enrolled in any courses yet.</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- User statuses update form, shown only to the logged-in user viewing their own profile -->
+    {% if viewed_user == logged_in_user %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" action="{% url 'user_post_update' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="content" class="form-control" placeholder="What's on your mind?" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Post</button>
+            </form>
+        </div>
+    </div>
+    
+
+    <!-- User statuses, shown for all profiles -->
+
+    <div class="card mb-4" >
+        <div class="card-body">
+            <h5 class="card-title">User Statuses</h5>
+            {% for update in user_post %}
+            <div id="userPostsContainer"></div>
+            <div class="card mb-2" >
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        {% if update.user.photo %}
+                            <img src="{{ update.user.photo.url }}" alt="User Photo" class="profile-pic"> 
+                        {% endif %} 
+                        {{ update.user.get_full_name }}
+                        {% if update.user.role == 'TE' %}
+                        - Teacher
+                        {% endif %}
+                    </h6>
+                    <p class="card-text">{{ update.content }}</p>
+                    <p class="card-text"><small class="text-muted">{{ update.created_at }}</small></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+function fetchLatestUserPosts() {
+    fetch('/api/latest_user_posts/')
+        .then(response => response.json())
+        .then(data => {
+            let postsHtml = '';
+            data.forEach(post => {
+                let photoHtml = `<img src="${post.user_photo_url}" alt="User Photo" class="profile-pic">`;
+                let roleHtml = post.user_role === 'Teacher' ? ' - Teacher' : '';
+                postsHtml += `                
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">${photoHtml} ${post.user_full_name}${roleHtml}</h6>
+                            <p class="card-text">${post.content}</p>
+                            <p class="card-text"><small class="text-muted">${post.created_at}</small></p>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('userPostsContainer').innerHTML = postsHtml;
+        })
+        .catch(error => console.error('Error fetching latest user posts:', error));
+}
+
+setInterval(fetchLatestUserPosts, 5000);  // Fetch every 5 seconds
+</script>
+{% endblock %}

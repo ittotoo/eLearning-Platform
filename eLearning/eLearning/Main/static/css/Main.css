@@ -1,0 +1,85 @@
+body, html {
+    height: 100%; /* Make sure html and body are full-height */
+    margin: 0px;
+    padding: 0px;
+    border: 0px;  /* Reset any default margin */
+    overflow-y: auto;
+    overflow-x: hidden; /* Hide overflow */
+}
+
+#logo {  
+    vertical-align: middle;
+    width: 10vh;
+}
+
+.profile-pic {
+    width: 30px; /* Adjust to your preference */
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.col {
+    padding: 5px;
+}
+
+.main-content {
+    padding-top: 30px;
+}
+
+#live-search-results {
+    position: relative;
+    width: 100%; /* Match the input width */
+    z-index: 1000; /* Ensure it's above other content */
+    max-height: 300px; /* Limit height and make it scrollable */
+    overflow-y: auto;
+    background-color: white; /* Match Bootstrap's default background */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .1); /* Optional: adds shadow for depth */
+}
+
+
+
+.text-right {
+    text-align: right;
+    color: blue; /* Or any color/style you prefer for messages sent by the current user */
+    display: block;
+    padding: 8px;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    background-color: #f0f0f0; /* Light grey background for differentiation */
+}
+
+.text-left {
+    text-align: left;
+    color: black; /* Or any color/style for messages received from others */
+    display: block;
+    padding: 8px;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    background-color: #e8e8e8; /* Slightly different grey for contrast */
+}
+
+/* Make sure the messages have some spacing */
+.text-right div, .text-left div {
+    background-color: #e9ecef;
+    padding: 0.5rem 1rem;
+    border-radius: 15px;
+    margin-top: 0.5rem;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+@media (max-width: 992px) {
+
+    body {
+        padding-left: 0; /* Sidebar is no longer fixed on the left on smaller screens */
+    }
+
+    .top-bar {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}

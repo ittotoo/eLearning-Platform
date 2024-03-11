@@ -1,0 +1,115 @@
+{% load static %}
+{% load notification_tags %}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/" id="logo1">
+            <img src="{% static 'imgs/Logo.png' %}" alt="logo" id="logo">eLearn
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            {% if user.is_authenticated and user.role == 'TE' %}
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <form class="form-inline d-flex" method="GET">
+                        <input class="form-control mr-sm-2" type="search" name="query" 
+                        placeholder="Search students or teachers" aria-label="Search" id="live-search" 
+                        data-search-url="{% url 'live_search' %}" autocomplete="off" style="width: 600px;">
+                        <div id="live-search-results" class="live-search-results"></div>
+                    </form>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+
+        
+        <ul class="navbar-nav ml-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="bi bi-bell" style="color: white;"></i>
+                    {% get_unread_notifications_count user as unread_notifications_count %}                    
+                    <span class="badge badge-danger" id="notificationCount" style="display:none;">{{ unread_notifications_count }}</span>                    
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                    {% get_unread_notifications user as notifications %}
+                    {% for notification in notifications %}
+                        <a class="dropdown-item" href="{% url 'read_notification' notification.id %}">{{ notification.message }}</a>
+                    {% empty %}
+                        <a class="dropdown-item" href="#">No new notifications</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/courses">All Courses<span class="sr-only">(current)</span></a>
+            </li> 
+            <li class="nav-item active">
+                <a class="nav-link" href="/logout">Logout<span class="sr-only">(current)</span></a>
+            </li> 
+            <li class="nav-item active">                    
+                <a class="nav-link" href="/profile"> 
+                    {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="User Photo" style="width: 30px; height: 30px;" class="profile-pic">
+                    {% endif %}
+                    {{ user.username }} <span class="sr-only">(current)</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="nav-item active">
+                <a class="nav-link" href="../register/">Register<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/login">Log In<span class="sr-only">(current)</span></a>
+            </li>
+            {% endif %}
+        </ul>
+            
+        
+    </div>
+</nav>
+
+{% block javascript %}
+{% if user.is_authenticated %}
+<script>
+var readNotificationBaseUrl = '{% url "read_notification" "0" %}'.replace('0/', '');
+
+function fetchNotifications() {
+    fetch(`{% url 'fetch_notifications' %}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Notifications data:", data);
+            const notifications = data.notifications;
+            let dropdownContent = '';
+            notifications.forEach(notification => {
+                let notificationUrl = `${readNotificationBaseUrl}${notification.id}/`;
+                dropdownContent += `<a class="dropdown-item" href="${notificationUrl}">${notification.message}</a>`;
+            });
+
+            document.querySelector('.dropdown-menu').innerHTML = dropdownContent;
+
+            const notificationCountElement = document.getElementById('notificationCount');
+            if (notificationCountElement) {
+                if (notifications.length > 0) {
+                    notificationCountElement.textContent = notifications.length;
+                    notificationCountElement.style.display = 'inline-block'; // Show the badge
+                } else {
+                    notificationCountElement.style.display = 'none'; // Hide the badge if no notifications
+                }
+            } else {
+                console.log('Notification count element not found.');
+            }
+        })
+        .catch(error => console.error('Error fetching notifications:', error));
+}
+
+// Call fetchNotifications immediately to load notifications, then set interval for real-time update
+fetchNotifications();
+setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
+</script>
+{% endif %}
+{% endblock %}

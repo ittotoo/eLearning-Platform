@@ -1,0 +1,21 @@
+{% extends 'Main/base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <h2>Students in "{{ course.title }}"</h2>
+    <ul class="list-group">
+        {% for enrollment in students %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{% url 'profile' username=enrollment.student.username %}">
+                    {{ enrollment.student.get_full_name }}
+                </a>
+                <form method="post" action="{% url 'unenroll_student' course.id enrollment.student.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Unenroll</button>
+                </form>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No students enrolled yet.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

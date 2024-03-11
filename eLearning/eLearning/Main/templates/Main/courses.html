@@ -1,0 +1,44 @@
+{% extends 'Main/base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+<div class="container mt-4 text-center">
+    <h2 class="mb-4">Courses</h2>
+    {% for category in categories %}
+        <div class="mb-5 border p-3 border-rounded">
+            <h3 class="mb-3 text-center">{{ category.name }}</h3>
+            <div class="row justify-content-center">
+                {% for course in category.course_set.all %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card w-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ course.title }}</h5>
+                                <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <small class="text-muted">Taught by: {{ course.teacher.get_full_name }}</small>
+                            </div>
+                            {% if request.user.role == 'ST' %}
+                            <div class="card-footer">
+                                {% if course.id in enrolled_course_ids %}
+                                    <button class="btn btn-secondary disabled">Enrolled</button>
+                                {% else %}
+                                    <form method="post" action="{% url 'enroll_course' course.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Enroll</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <p>No courses available in this category.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

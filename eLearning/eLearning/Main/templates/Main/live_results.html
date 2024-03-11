@@ -1,0 +1,9 @@
+<div class="list-group" id="live-results">
+    {% for user in users %}
+        <a href="{% url 'profile' user.username %}" class="list-group-item list-group-item-action">
+            {{ user.get_full_name }} - {% if user.role == 'ST' %}Student{% else %}Teacher{% endif %}
+        </a>
+    {% empty %}
+        <div class="list-group-item">No users found.</div>
+    {% endfor %}
+</div>

@@ -1,0 +1,13 @@
+{% extends 'Main/base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Profile</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-success">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

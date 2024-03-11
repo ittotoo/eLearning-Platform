@@ -1,0 +1,29 @@
+{% include "./header.html" %}
+{% include "./navbar.html" %}
+{% load bootstrap4 %}
+
+<div class="container-fluid main-content">
+    <div class="row">
+        {% if messages %} <!-- Checks if there are any messages to display -->
+            <div class="container">
+                {% for message in messages %} <!-- Iterates over each message and displays it -->
+                    <div class="alert alert-{{ message.tags|add:' alert-dismissible fade show' }} {% if message.tags == 'error' %}alert-danger{% endif %}" role="alert">
+                        {{ message }} <!-- Displays the message text -->
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    {% block content %} <!-- Placeholder for child templates to insert their content -->
+    {% endblock %}
+</div>
+
+{% block javascript %} <!-- Placeholder for child templates to insert their JavaScript -->
+
+{% endblock %}
+
+{% include "./footer.html" %}
